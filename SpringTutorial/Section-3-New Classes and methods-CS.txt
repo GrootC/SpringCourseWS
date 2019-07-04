@@ -1,0 +1,119 @@
+https://github.com/in28minutes/spring-microservices/tree/master/02.restful-web-services
+
+
+Section-3-19
+=============
+##Internationalization
+~ Different users uses different languages, customizied services for different people.
+
+**Configuration
+- LocalResolver[org.springframework.web.servlet.LocaleResolver]
+	- Default Local.US 
+	- We used SessionLocaleResolver [org.springframework.web.servlet.i18n.SessionLocaleResolver] at this point.
+- ResourceBundleMessageSource [org.springframework.context.support.ResourceBundleMessageSource] (Reading from property files)
+
+**Usage 
+- Autowired MessageSource [org.springframework.context.MessageSource] instant
+- @RequestHeader(value="Accept-Language", required = false) for Locale [java.util.Locale] instant
+- get messageSource instant and getmessage.
+
+Note: MessageSource internal bean also there, be aware about conflicts.
+Field messageSource1 in tute.exmpl.restWebService.SpringTutorial.helloService.HelloWorldController required a single bean, 
+but 2 were found:
+	- bundleMessageSourcess: defined by method 'bundleMessageSourcess' in tute.exmpl.restWebService.SpringTutorial.SpringTutorialApplication
+	- messageSource: a programmatically registered singleton
+
+Note : whenever use messageSource() as method name, internal messageSource is override in here, 
+	   this is the cause for run application without any exception
+
+
+Section-3-20
+=============
+##Internationalization - Part 2
+
+- AcceptHeaderLocaleResolver [org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver] replaced as locale Resolver.
+- ResourceBundleMessageSource replaced by application.properties -> spring.messages.basename=messages property.
+- LocaleContextHolder [org.springframework.context.i18n.LocaleContextHolder] used for initially get the Accept-Language
+
+Section-3-21
+============= 
+Content Negotiation - Implementing Support for XML
+Here rest resources support for XML representation also.
+
+add dependency jackson-dataformat-xml
+
+Section-3-20,3-21,3-22
+======================
+Swagger 2 is configured for API Documentation.
+
+- Create Swagger config class by using @Configuration & @EnableSwagger2 annotations.
+- Crate a @Bean returning a Docket instant. This instant can be modified and do customized api doc.
+
+- @ApiModel & @ApiModelProperty annotations are useful when documenting user. Property level &  Class level
+
+
+Section-3-27
+=============
+Dynamic Filtering
+
+- Configuration done at Controller class.
+	[tute.exmpl.restWebService.SpringTutorial.filtering.FilteringController]
+- We create filter by SimpleBeanPropertyFiter and add what need to filter.
+	- Then create a filter provider by FilterProvider and add filter. When adding filter, should provide id for filter.
+	  i.e '.addFilter("IdOfFilterProvider", filter);'   
+	- Finally create a MappingJacksonValue and added our bean, filterprovider to it.
+	- return MappingJacksonValue instant.
+- At the Bean class level use @JsonFilter("IdOfFilterProvider") annotation.  
+
+   
+Section-3-28,3-29
+=================
+Versioning 
+- versioning like same data in different ways. Old-way and new-way, here we got two versions.
+
+- In section-3-28, called about basic versioning which is different urls for each version.
+	This is called 'URL Versioning'
+
+- In Section-3-29
+	- Request Parameter Versioning (get parameter as version number)
+	- Header Versioning (header "X-API-VERSION" value as version)
+	- Media Type Versioning ( a.k.a "content negotiation" or "accept-header")	
+
+Section-3-30
+=================
+Implemented Security (Used spring-boot-starter-security dependency)
+ - Basic Auth is exposed with security. Spring Boot automatically configured after add dependency.
+ - Default username is 'user' password is generated.
+ - If need to change username & password, edit application properties.You can change the username and password by 
+   providing a 'spring.security.user.name' and 'spring.security.user.password'
+   
+Section-3-32
+=================
+Adding JPA
+ - @Endity, @Id, @GeneratedValue use in User class.
+ - in application.properties, enable spring.h2.console.enabled=true and spring.jpa.show-sql=true
+ - data.sql (initialized DML scrpit, if available in classpath) added.
+ - note that h2 console available in '/h2-console' & db URL should be 'jdbc:h2:mem:testdb'. 
+ 
+ Section-3-33,34
+=================
+UserRepository interface joined in-order to implement JPA
+ - No more null check, use Optional<User> class isPresent() method.
+ - updated methods according to work with JPA Repo
+
+Section-3-35
+=================
+Post Entity created. Relationship between Post and User is one to many.
+ - when overriding toString() method at Post class, DO NOT add User class. It will cause for recursive & out of memory.
+ - In Post class add '@ManyToOne(fetch=FetchType.LAZY)' with User object. LAZY indicates that use only fetch if call post.getUser() method.
+   This is for avoid recursive between Post & User relationship.
+ - As on relationship, User has List of post.'@OneToMany(mappedBy="user")' declared top of referance type.
+ - In table post foreign key generated for keep user id.
+ 
+ 
+ Section-3-36
+=================
+Implemented a method for get all post by user id.
+ - Infinite recursion (StackOverflowError) happended because of has not define '@JsonIgnore' on user object at Post class.
+ - make sure about default constructors. (InstantiationException: No default constructor for entity)exception comes up.
+   (https://stackoverflow.com/questions/2935826/why-does-hibernate-require-no-argument-constructor)

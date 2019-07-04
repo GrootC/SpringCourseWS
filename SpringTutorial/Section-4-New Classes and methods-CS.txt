@@ -1,0 +1,69 @@
+Config Management
+
+ -Spring Cloud Config Server
+	Expose stored config to all microservices. Centerlized config stored information about all the configuration of all enviroments of microservises in  a git repo.
+	
+Dynamic Scaleup and scaledown
+ - Naming Server (Eureka)
+	All instant of all the microservices are registered in this naming server. Service Regisety as well as Service Discovery done by Eureka.
+ - Client side Load balancing (Ribbon)
+ - Feign for write Rest client.
+
+Visibility and Monitoring
+ - Zipkin Distributed Tracing
+ - Netflix API Gateway
+ 
+Fault Tolerance 
+Check instants up/down
+ - Hystrix
+ 
+ * There might be several environments for each microservice (2 QA as QA1 and QA2, Dev, Production, stage environments)
+   so all the configuration at central place.(at git repo)
+   
+
+Section-4-09
+============
+Creation of "Limits-Service". Created a bean and simply return its value from a rest controller.
+ 
+Section-4-10
+============
+minimum and maximum values take from properties file. In order to complete task, added Configuration class.
+Make sure to add setters. Exception might come up.
+"@ConfigurationProperties("limits-service")" used to tell which properties should pick up.(As like prefix)
+
+Section-4-11, Section-4-12, Section-4-13
+================================================
+Creation of spring-cloud-config-service. DevTools, Web, Actuator, Config Server dependencies added.
+Provide the application name and server port at property file.
+
+Create a folder and initiate git. In here "git-localconfig-repo". Created a file to hold configurations of limits-service ("limits-service.properties")
+Commit it to local git.
+
+Establish connection between limits-service and spring cloud
+------------------------------------------------------------
+provide git location to property "spring.cloud.config.server.git.uri". Remember to add "file://" with full path.
+Special note that, config data can be access via "localhost/<file_name>/default" (<file_name> = "limits-service" as on here )
+Used @EnableConfigServer annotation at main class level.
+
+Section-4-14, Section-4-15
+==========================
+Configure multiple environments. dev, qa so on.
+if no property config in specific environment, default will be get.
+url gose like "localhost:port/limit-service/qa" or "localhost:port/limit-service/dev" highest priority gives to QA or DEV.
+while ""localhost/limit-service-qa/default"
+"http://localhost:8888/limits-service-qa/default"
+
+Section-4-16
+============
+Configure limits-service with spring-cloud.
+-limit-service project application.properties renamed to bootstrap.properties.(bootstrap loads up before application)
+-name of the service that is spring.application.name value is critical and important.
+-uri set in spring.cloud.config.uri property.
+- test by localhost:limit_port/limit this returned default configurations, which is limits-service.properties.
+
+Section-4-17
+============
+-declare the active environment at bootsratp.properties 
+	spring.profiles.active=dev
+	
+* Make sure changes have committed to git.
